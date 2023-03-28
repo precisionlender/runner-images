@@ -98,9 +98,9 @@ Function GenerateResourcesAndImage {
         [Parameter(Mandatory = $True)]
         [ImageType] $ImageType,
         [Parameter(Mandatory = $True)]
-        [string] $ImageResourceGroup
+        [string] $ImageResourceGroup,
         [Parameter(Mandatory = $True)]
-        [string] $ImageNamePrefix
+        [string] $ImageNamePrefix,
         [Parameter(Mandatory = $True)]
         [string] $AzureLocation,
         [Parameter(Mandatory = $False)]
