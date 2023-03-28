@@ -44,12 +44,8 @@
             "os_disk_size_gb": "256",
             "location": "{{user `location`}}",
             "vm_size": "{{user `vm_size`}}",
-            "resource_group_name": "{{user `resource_group`}}",
-            "storage_account": "{{user `storage_account`}}",
             "build_resource_group_name": "{{user `build_resource_group_name`}}",
             "temp_resource_group_name": "{{user `temp_resource_group_name`}}",
-            "capture_container_name": "images",
-            "capture_name_prefix": "{{user `capture_name_prefix`}}",
             "virtual_network_name": "{{user `virtual_network_name`}}",
             "virtual_network_resource_group_name": "{{user `virtual_network_resource_group_name`}}",
             "virtual_network_subnet_name": "{{user `virtual_network_subnet_name`}}",
@@ -62,7 +58,9 @@
             "communicator": "winrm",
             "winrm_use_ssl": "true",
             "winrm_insecure": "true",
-            "winrm_username": "packer"
+            "winrm_username": "packer",
+            "managed_image_resource_group_name": "{{user `managed_image_resource_group_name`}}",
+            "managed_image_name": "{{user `image_name_prefix`}}{{isotime | clean_resource_name}}"
         }
     ],
     "provisioners": [

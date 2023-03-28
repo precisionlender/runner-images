@@ -68,6 +68,10 @@ Function GenerateResourcesAndImage {
             The root path of the image generation repository source.
         .PARAMETER ImageType
             The type of the image being generated. Valid options are: {"Windows2019", "Windows2022", "Ubuntu1804", "Ubuntu2004", "Ubuntu2204"}.
+        .PARAMETER ImageResourceGroup
+            The destination resource group of the image being created
+        .PARAMETER ImageNamePrefix
+            The prefix of the image name, will be appended with an iso timestamp
         .PARAMETER AzureLocation
             The location of the resources being created in Azure. For example "East US".
         .PARAMETER Force
@@ -81,9 +85,6 @@ Function GenerateResourcesAndImage {
         .PARAMETER RestrictToAgentIpAddress
             If set, access to the VM used by packer to generate the image is restricted to the public IP address this script is run from. 
             This parameter cannot be used in combination with the virtual_network_name packer parameter.
-        
-        .PARAMETER AllowBlobPublicAccess
-            The Azure storage account will be created with this option.
         .PARAMETER OnError
             Specify how packer handles an error during image creation.
         .EXAMPLE
@@ -96,6 +97,10 @@ Function GenerateResourcesAndImage {
         [string] $ResourceGroupName,
         [Parameter(Mandatory = $True)]
         [ImageType] $ImageType,
+        [Parameter(Mandatory = $True)]
+        [string] $ImageResourceGroup
+        [Parameter(Mandatory = $True)]
+        [string] $ImageNamePrefix
         [Parameter(Mandatory = $True)]
         [string] $AzureLocation,
         [Parameter(Mandatory = $False)]
@@ -112,10 +117,6 @@ Function GenerateResourcesAndImage {
         [Switch] $RestrictToAgentIpAddress,
         [Parameter(Mandatory = $False)]
         [Switch] $Force,
-        [Parameter(Mandatory = $False)]
-        [bool] $AllowBlobPublicAccess = $False,
-        [Parameter(Mandatory = $False)]
-        [bool] $EnableHttpsTrafficOnly = $False,
         [Parameter(Mandatory = $False)]
         [ValidateSet("abort","ask","cleanup","run-cleanup-provisioner")]
         [string] $OnError = "ask",
@@ -179,27 +180,6 @@ Function GenerateResourcesAndImage {
             }
         } else {
             New-AzResourceGroup -Name $ResourceGroupName -Location $AzureLocation -Tag $tags
-        }
-
-        # This script should follow the recommended naming conventions for azure resources
-        $storageAccountName = if($ResourceGroupName.EndsWith("-rg")) {
-            $ResourceGroupName.Substring(0, $ResourceGroupName.Length -3)
-        } else { $ResourceGroupName }
-
-        # Resource group names may contain special characters, that are not allowed in the storage account name
-        $storageAccountName = $storageAccountName.Replace("-", "").Replace("_", "").Replace("(", "").Replace(")", "").ToLower()
-        $storageAccountName += "001"
-        
-        
-        # Storage Account Name can only be 24 characters long
-        if ($storageAccountName.Length -gt 24){
-            $storageAccountName = $storageAccountName.Substring(0, 24)
-        }
-
-        if ($tags) {
-            New-AzStorageAccount -ResourceGroupName $ResourceGroupName -AccountName $storageAccountName -Location $AzureLocation -SkuName "Standard_LRS" -AllowBlobPublicAccess $AllowBlobPublicAccess -EnableHttpsTrafficOnly $EnableHttpsTrafficOnly -Tag $tags
-        } else {
-            New-AzStorageAccount -ResourceGroupName $ResourceGroupName -AccountName $storageAccountName -Location $AzureLocation -SkuName "Standard_LRS" -AllowBlobPublicAccess $AllowBlobPublicAccess -EnableHttpsTrafficOnly $EnableHttpsTrafficOnly
         }
 
         if ([string]::IsNullOrEmpty($AzureClientId)) {
@@ -292,6 +272,8 @@ Function GenerateResourcesAndImage {
             -var "storage_account=$($storageAccountName)" `
             -var "install_password=$($InstallPassword)" `
             -var "allowed_inbound_ip_addresses=$($AgentIp)" `
+            -var "managed_image_resource_group_name=$($ImageResourceGroup)" `
+            -var "image_name_prefix=$($ImageNamePrefix)" `
             $builderScriptPath
     }
     catch {
