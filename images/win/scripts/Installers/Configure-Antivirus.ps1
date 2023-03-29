@@ -30,7 +30,11 @@ $avPreference | Foreach-Object {
 }
 
 Write-Host "Disable Windows Defender scheduled tasks"
-Get-ScheduledTask -TaskPath '\Microsoft\Windows\Windows Defender\' | Disable-ScheduledTask | Out-Null
+try{
+    Get-ScheduledTask -TaskPath '\Microsoft\Windows\Windows Defender\' | Disable-ScheduledTask | Out-Null
+} catch {
+    Write-Host "Scheduled task for Windows Defender not found, continuing"
+}
 
 # https://github.com/actions/runner-images/issues/4277
 # https://docs.microsoft.com/en-us/microsoft-365/security/defender-endpoint/microsoft-defender-antivirus-compatibility?view=o365-worldwide
