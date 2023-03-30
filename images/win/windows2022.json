@@ -60,7 +60,10 @@
             "winrm_insecure": "true",
             "winrm_username": "packer",
             "managed_image_resource_group_name": "{{user `managed_image_resource_group_name`}}",
-            "managed_image_name": "{{user `image_name_prefix`}}{{isotime | clean_resource_name}}"
+            "managed_image_name": "{{user `image_name_prefix`}}{{isotime | clean_resource_name}}",
+            "azure_tags": {
+                "ExcludeMdeAutoProvisioning": "True"
+            }
         }
     ],
     "provisioners": [
