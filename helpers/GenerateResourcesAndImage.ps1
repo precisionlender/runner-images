@@ -124,10 +124,6 @@ Function GenerateResourcesAndImage {
         [Parameter(Mandatory = $False)]
         [string] $ManagedImageName = "Runner-Image-$($ImageType)",
         [Parameter(Mandatory = $True)]
-        [string] $ImageResourceGroup,
-        [Parameter(Mandatory = $True)]
-        [string] $ImageNamePrefix,
-        [Parameter(Mandatory = $True)]
         [string] $AzureLocation,
         [Parameter(Mandatory = $False)]
         [string] $ImageGenerationRepositoryRoot = $pwd,
