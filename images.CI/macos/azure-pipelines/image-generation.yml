@@ -1,12 +1,13 @@
 jobs:
 - job: Image_generation
   displayName: Image Generation (${{ parameters.image_label }})
-  timeoutInMinutes: 720
+  timeoutInMinutes: 1200
   pool:
     name: Mac-Cloud Image Generation
+    demands:
+    - PrimaryRackAgent -equals ${{ parameters.primary_agent }}
   variables:
-  - group: Mac-Cloud Image Generation
-  - group: Mac-Cloud Image Generation Key Vault
+  - group: ${{ parameters.variable_group_name }}
 
   steps:
   - pwsh: |
@@ -64,6 +65,7 @@ jobs:
           'Using ssh communicator to connect:'
       )
 
+      packer init ${{ parameters.template_path }}
       packer build -on-error=abort `
         -var="vcenter_server=$(vcenter-server-v2)" `
         -var="vcenter_username=$(vcenter-username-v2)" `
@@ -77,8 +79,8 @@ jobs:
         -var="github_api_pat=$(github_api_pat)" `
         -var="build_id=$(VirtualMachineName)" `
         -var="baseimage_name=${{ parameters.base_image_name }}" `
-        -var="xcode_install_user=$(xcode-installation-user)" `
-        -var="xcode_install_password=$(xcode-installation-password)" `
+        -var="xcode_install_storage_url=$(xcode_install_storage_url)" `
+        -var="xcode_install_sas=$(xcode_install_sas)" `
         -color=false `
         ${{ parameters.template_path }} `
         | Where-Object {
@@ -94,12 +96,8 @@ jobs:
       PACKER_LOG_PATH: $(Agent.TempDirectory)/packer-log.txt
 
   - bash: |
-      echo "Copy image output files"
-      cp -R "images/image-output/software-report/." "$(Build.ArtifactStagingDirectory)/"
-
-      echo "Copy test results"
-      cp -R "images/image-output/tests/." "$(Common.TestResultsDirectory)/"
-      ls $(Common.TestResultsDirectory)
+      echo "Copy software report files"
+      cp -vR "images/image-output/software-report/." "$(Build.ArtifactStagingDirectory)/"
 
       echo "Put VM name to 'VM_Done_Name' file"
       echo "$(VirtualMachineName)" > "$(Build.ArtifactStagingDirectory)/VM_Done_Name"
